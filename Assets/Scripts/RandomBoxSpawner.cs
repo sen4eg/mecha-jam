@@ -32,6 +32,11 @@ public class RandomBoxSpawner : MonoBehaviour
                 rigidbody.angularVelocity = Random.insideUnitSphere * angularVelocity;
                 
                 rigidbody.angularDrag = 0f; // Set angular drag to zero
+                MeshCollider meshCollider = box.GetComponent<MeshCollider>();
+                if (meshCollider == null)
+                    meshCollider = box.AddComponent<MeshCollider>();
+
+                meshCollider.convex = true;
             }
         }
     }

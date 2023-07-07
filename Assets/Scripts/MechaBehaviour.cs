@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class MechaBehaviour : MonoBehaviour
 {
@@ -8,52 +10,58 @@ public class MechaBehaviour : MonoBehaviour
 	public float angularVelocity = 90f;
 	public float boostMultiplier = 2f;
 	public float screenShakeOnMove = 0.1f;
+	public bool intertiaCompensation = true;
 	public GameObject cockpit;
 	public GameObject camera;
 	public AnimationCurve screenShakeCurve;
 	private Coroutine screenShakeCoroutine = null;
+	
+	private Vector3 _direction;
+	private Vector3 _angularDisplacement;
+	private Rigidbody _rigidbody;
+
+	public Vector2 DragToSpeedCoefOffOn = new Vector2(0.1f, 20);
 	// Start is called before the first frame update
-    void Start()
+    public void Start()
     {
-        
+        _rigidbody = gameObject.GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame
-    void Update()
+	public void Update()
     {
-	    handleMouseControl();
-        Vector3 direction = getMovementDirection();
+	    _direction = GetMovementDirection();
         if (Input.GetKey(KeyCode.LeftShift)){
-	        direction *= boostMultiplier;
+	        _direction *= boostMultiplier;
 		}
-        gameObject.transform.Translate(direction * (speed * Time.deltaTime));
+        gameObject.transform.Translate(_direction * (speed * Time.deltaTime));
 
-        if (Input.GetKey(KeyCode.Q)){
-			gameObject.transform.Rotate(Vector3.forward, angularVelocity * Time.deltaTime);
-		}
-        if (Input.GetKey(KeyCode.E))
+        _angularDisplacement = new Vector3()
         {
-	        gameObject.transform.Rotate(Vector3.forward, -angularVelocity* Time.deltaTime);
-        }
-        
-        if (direction.magnitude > 0.1f && screenShakeCoroutine == null)
-		{
-	        StartCoroutine(Shaking());
+	        y = Input.GetAxis("Mouse X"),
+	        x = -Input.GetAxis("Mouse Y"), // mind how unity rotate things
+	        z = (Input.GetKey(KeyCode.Q) ? 1 : 0) + (Input.GetKey(KeyCode.E) ? -1 : 0)
+        };
+        UpdateToggleGraviCompensator();
+    }
+
+	private void UpdateToggleGraviCompensator()
+	{
+		if (Input.GetKeyDown(KeyCode.V)) {
+			intertiaCompensation = !intertiaCompensation;
 		}
-
-        
-    }
-
-    private void handleMouseControl()
-    {
-	    float mouseX = Input.GetAxis("Mouse X");
-	    float mouseY = Input.GetAxis("Mouse Y");
-	    gameObject.transform.Rotate(Vector3.up, mouseX * angularVelocity * Time.deltaTime);
-	    gameObject.transform.Rotate(Vector3.left, mouseY * angularVelocity * Time.deltaTime);
-    }
+		if (intertiaCompensation)
+		{
+			_rigidbody.angularDrag = DragToSpeedCoefOffOn.y;
+			_rigidbody.drag = DragToSpeedCoefOffOn.y;
+		}else {
+			_rigidbody.angularDrag = DragToSpeedCoefOffOn.x;
+			_rigidbody.drag = DragToSpeedCoefOffOn.x;
+		}
+	}
 
 
-    Vector3 getMovementDirection(){
+	private Vector3 GetMovementDirection(){
 		Vector3 direction = Vector3.zero;
 		if (Input.GetKey(KeyCode.W)){
             direction += Vector3.forward;
@@ -76,7 +84,7 @@ public class MechaBehaviour : MonoBehaviour
 		return direction.normalized;
 	}
 
-    IEnumerator Shaking()
+    private IEnumerator Shaking()
     {
 	    Vector3 originalPosition = camera.transform.localPosition;
 	    float time = 0f;
@@ -88,5 +96,26 @@ public class MechaBehaviour : MonoBehaviour
 		    yield return null;
 	    }
 	    camera.transform.localPosition = originalPosition;
+    }
+
+    public void FixedUpdate()
+    {
+	    UpdateMovement();
+    }
+
+    private void UpdateMovement()
+    {
+	    HandleDirectionalMovement();
+	    HandleAngularMovement();
+    }
+
+    private void HandleAngularMovement()
+    {
+	    _rigidbody.AddRelativeTorque(angularVelocity * Time.deltaTime * _angularDisplacement, ForceMode.Impulse);
+    }
+
+    private void HandleDirectionalMovement()
+    {
+	    _rigidbody.AddForce(speed * Time.deltaTime * _direction, ForceMode.Impulse);
     }
 }
