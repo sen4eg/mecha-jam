@@ -7,7 +7,11 @@ public class MechaBehaviour : MonoBehaviour
 	public float speed = 10f;
 	public float angularVelocity = 90f;
 	public float boostMultiplier = 2f;
-	
+	public float screenShakeOnMove = 0.1f;
+	public GameObject cockpit;
+	public GameObject camera;
+	public AnimationCurve screenShakeCurve;
+	private Coroutine screenShakeCoroutine = null;
 	// Start is called before the first frame update
     void Start()
     {
@@ -22,7 +26,7 @@ public class MechaBehaviour : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftShift)){
 	        direction *= boostMultiplier;
 		}
-        gameObject.transform.Translate(direction * speed * Time.deltaTime);
+        gameObject.transform.Translate(direction * (speed * Time.deltaTime));
 
         if (Input.GetKey(KeyCode.Q)){
 			gameObject.transform.Rotate(Vector3.forward, angularVelocity * Time.deltaTime);
@@ -32,6 +36,11 @@ public class MechaBehaviour : MonoBehaviour
 	        gameObject.transform.Rotate(Vector3.forward, -angularVelocity* Time.deltaTime);
         }
         
+        if (direction.magnitude > 0.1f && screenShakeCoroutine == null)
+		{
+	        StartCoroutine(Shaking());
+		}
+
         
     }
 
@@ -66,4 +75,18 @@ public class MechaBehaviour : MonoBehaviour
         }
 		return direction.normalized;
 	}
+
+    IEnumerator Shaking()
+    {
+	    Vector3 originalPosition = camera.transform.localPosition;
+	    float time = 0f;
+	    while (time < screenShakeCurve.length)
+	    {
+		    time += Time.deltaTime;
+		    float displacement = screenShakeCurve.Evaluate(time);
+		    camera.transform.localPosition = originalPosition + Random.insideUnitSphere * displacement;
+		    yield return null;
+	    }
+	    camera.transform.localPosition = originalPosition;
+    }
 }
