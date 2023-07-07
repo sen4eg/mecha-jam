@@ -43,7 +43,17 @@ public class MechaBehaviour : MonoBehaviour
 	        z = (Input.GetKey(KeyCode.Q) ? 1 : 0) + (Input.GetKey(KeyCode.E) ? -1 : 0)
         };
         UpdateToggleGraviCompensator();
+        UpdateScreenShake();
+        Debug.Log(_rigidbody.velocity.sqrMagnitude);
     }
+
+	private void UpdateScreenShake()
+	{
+		if (_rigidbody.velocity.sqrMagnitude > 9)
+		{
+			screenShakeCoroutine ??= StartCoroutine(Shaking());
+		}
+	}
 
 	private void UpdateToggleGraviCompensator()
 	{
@@ -96,6 +106,7 @@ public class MechaBehaviour : MonoBehaviour
 		    yield return null;
 	    }
 	    camera.transform.localPosition = originalPosition;
+	    screenShakeCoroutine = null;
     }
 
     public void FixedUpdate()
