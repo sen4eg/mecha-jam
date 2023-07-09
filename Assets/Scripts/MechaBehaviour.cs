@@ -9,18 +9,25 @@ public class MechaBehaviour : MonoBehaviour
 	public float speed = 10f;
 	public float angularVelocity = 90f;
 	public float boostMultiplier = 2f;
-	public float screenShakeOnMove = 0.1f;
 	public bool intertiaCompensation = true;
+	public float intertiaCompensationMultiplier = 1f;
 	public GameObject cockpit;
-	public GameObject camera;
+	public new GameObject camera;
 	public AnimationCurve screenShakeCurve;
+	public bool doScreenShake = true;
+	public float absolutlyUnaceptableAccumulatedRoll = 0f;
+	[Range(0.1f, 5f)]
+	public float rollIntensityMultiplier = 2.5f;
+	[Range(0.1f, 5f)]                            
+	public float pitchIntensityMultiplier = 2.5f; 
+	
 	private Coroutine screenShakeCoroutine = null;
 	
-	private Vector3 _direction;
-	private Vector3 _angularDisplacement;
-	private Rigidbody _rigidbody;
+	private Vector3 _direction = Vector3.zero;
+	private Vector3 _angularDisplacement = Vector3.zero;
+	private Rigidbody _rigidbody = null;
 
-	public Vector2 DragToSpeedCoefOffOn = new Vector2(0.1f, 20);
+	public ForceMode directionalForceMode = ForceMode.Force;
 	// Start is called before the first frame update
     public void Start()
     {
@@ -34,39 +41,47 @@ public class MechaBehaviour : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftShift)){
 	        _direction *= boostMultiplier;
 		}
-        gameObject.transform.Translate(_direction * (speed * Time.deltaTime));
-
         _angularDisplacement = new Vector3()
         {
 	        y = Input.GetAxis("Mouse X"),
-	        x = -Input.GetAxis("Mouse Y"), // mind how unity rotate things
-	        z = (Input.GetKey(KeyCode.Q) ? 1 : 0) + (Input.GetKey(KeyCode.E) ? -1 : 0)
+	        x = -Input.GetAxis("Mouse Y"), // mind how unity rotate things	
+	        z = ((Input.GetKey(KeyCode.Q) ? 1 : 0) + (Input.GetKey(KeyCode.E) ? -1 : 0))
         };
+        HandleAngularDisplacement();
         UpdateToggleGraviCompensator();
         UpdateScreenShake();
-        Debug.Log(_rigidbody.velocity.sqrMagnitude);
     }
+
+	private void HandleAngularDisplacement() {
+		//transform.Rotate(_angularDisplacement * (Time.deltaTime * angularVelocity), Space.Self);
+		
+		// TODO: Lerp me. Interpolate me. Smooth me.      
+		Transform cachedTransform = transform; // keep link, optimizes a bit
+		float rollBefore = cachedTransform.rotation.eulerAngles.z;
+		transform.Rotate(Vector3.right, _angularDisplacement.x * (Time.deltaTime * angularVelocity * pitchIntensityMultiplier));
+		transform.Rotate(Vector3.up, _angularDisplacement.y * (Time.deltaTime * angularVelocity));
+		float rollAfter = cachedTransform.rotation.eulerAngles.z;
+
+		absolutlyUnaceptableAccumulatedRoll += Mathf.Abs(rollAfter - rollBefore);
+		float rollDifference = rollBefore - rollAfter; // Compensates unintended roll after yaw and pitch
+		transform.Rotate(Vector3.forward, _angularDisplacement.z * (Time.deltaTime * angularVelocity * rollIntensityMultiplier) + rollDifference);
+	}
 
 	private void UpdateScreenShake()
 	{
-		if (_rigidbody.velocity.sqrMagnitude > 9)
-		{
+		if (!doScreenShake) {
+			return;
+		}
+		if (_rigidbody.velocity.sqrMagnitude > 9) {
 			screenShakeCoroutine ??= StartCoroutine(Shaking());
 		}
 	}
 
 	private void UpdateToggleGraviCompensator()
 	{
-		if (Input.GetKeyDown(KeyCode.V)) {
-			intertiaCompensation = !intertiaCompensation;
-		}
-		if (intertiaCompensation)
+		if (Input.GetKeyDown(KeyCode.V))
 		{
-			_rigidbody.angularDrag = DragToSpeedCoefOffOn.y;
-			_rigidbody.drag = DragToSpeedCoefOffOn.y;
-		}else {
-			_rigidbody.angularDrag = DragToSpeedCoefOffOn.x;
-			_rigidbody.drag = DragToSpeedCoefOffOn.x;
+			intertiaCompensation = !intertiaCompensation;
 		}
 	}
 
@@ -117,16 +132,35 @@ public class MechaBehaviour : MonoBehaviour
     private void UpdateMovement()
     {
 	    HandleDirectionalMovement();
-	    HandleAngularMovement();
+	    //HandleAngularMovement();
     }
 
+    /*
     private void HandleAngularMovement()
     {
-	    _rigidbody.AddRelativeTorque(angularVelocity * Time.deltaTime * _angularDisplacement, ForceMode.Impulse);
+	    //_rigidbody.AddRelativeTorque(angularVelocity * _angularDisplacement, angularForceMode);
+	    
+	    // Roll
+	    _rigidbody.AddTorque(Vector3.forward * (angularVelocity * _angularDisplacement.z * -1), angularForceMode);
+	    // Yaw
+	    _rigidbody.AddTorque(Vector3.right * (angularVelocity * _angularDisplacement.x), angularForceMode);
+	    // Pitch
+	    _rigidbody.AddTorque(Vector3.up * (angularVelocity * _angularDisplacement.y), angularForceMode);
+	    
+	    #region TheVeryDebugRegion
+	    if (Input.GetKey(KeyCode.Space)) {
+		    _rigidbody.angularVelocity = Vector3.zero;
+	    }
+	    #endregion
     }
+    */
 
     private void HandleDirectionalMovement()
     {
-	    _rigidbody.AddForce(speed * Time.deltaTime * _direction, ForceMode.Impulse);
+	    if (intertiaCompensation)
+	    {
+		    _rigidbody.AddRelativeForce(-_rigidbody.velocity * (intertiaCompensationMultiplier), directionalForceMode);
+	    }
+	    _rigidbody.AddRelativeForce(speed * _direction, directionalForceMode);
     }
 }
