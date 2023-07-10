@@ -1,43 +1,44 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class ReferenceUtils
-{
-    public static List<IReferencable> GetReferencablesWithTag(GameObject gameObject, string tag)
+namespace Utils {
+    public static class ReferenceUtils
     {
-        List<IReferencable> referencables = new List<IReferencable>();
-
-        IReferencable[] components = gameObject.GetComponents<IReferencable>();
-        foreach (IReferencable component in components)
+        public static List<IReferencable> GetReferencablesWithTag(GameObject gameObject, string tag)
         {
-            if (HasTag(component, tag))
+            List<IReferencable> referencables = new List<IReferencable>();
+
+            IReferencable[] components = gameObject.GetComponents<IReferencable>();
+            foreach (IReferencable component in components)
             {
-                referencables.Add(component);
+                if (HasTag(component, tag))
+                {
+                    referencables.Add(component);
+                }
             }
+
+            return referencables;
         }
 
-        return referencables;
-    }
-
-    private static bool HasTag(IReferencable referencable, string tag)
-    {
-        if (referencable is MonoBehaviour monoBehaviour)
+        private static bool HasTag(IReferencable referencable, string tag)
         {
-            if (Attribute.GetCustomAttributes(monoBehaviour.GetType(), typeof(ReferencableAttribute)) is ReferencableAttribute[] attributes)
+            if (referencable is MonoBehaviour monoBehaviour)
             {
-                foreach (var attribute in attributes)
+                if (Attribute.GetCustomAttributes(monoBehaviour.GetType(), typeof(ReferencableAttribute)) is ReferencableAttribute[] attributes)
                 {
-                    if (attribute.Tag == tag)
+                    foreach (var attribute in attributes)
                     {
-                        return true;
+                        if (attribute.Tag == tag)
+                        {
+                            return true;
+                        }
                     }
                 }
             }
-        }
 
-        return false;
-    }
+            return false;
+        }
     
+    }
 }

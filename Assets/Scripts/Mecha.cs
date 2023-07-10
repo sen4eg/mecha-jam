@@ -21,13 +21,16 @@ public class MechaBehaviour : MonoBehaviour
 	[Range(0.1f, 5f)]                            
 	public float pitchIntensityMultiplier = 2.5f; 
 	
-	private Coroutine screenShakeCoroutine = null;
+	private Coroutine _screenShakeCoroutine = null;
 	
 	private Vector3 _direction = Vector3.zero;
 	private Vector3 _angularDisplacement = Vector3.zero;
 	private Rigidbody _rigidbody = null;
 
 	public ForceMode directionalForceMode = ForceMode.Force;
+	
+	public Weapon weapon;
+	
 	// Start is called before the first frame update
     public void Start()
     {
@@ -50,7 +53,14 @@ public class MechaBehaviour : MonoBehaviour
         HandleAngularDisplacement();
         UpdateToggleGraviCompensator();
         UpdateScreenShake();
+        HandleWeapon();
     }
+
+	private void HandleWeapon() {
+		if (Input.GetMouseButton(0)) {
+			weapon.Fire(transform.forward);
+		}
+	}
 
 	private void HandleAngularDisplacement() {
 		//transform.Rotate(_angularDisplacement * (Time.deltaTime * angularVelocity), Space.Self);
@@ -73,7 +83,7 @@ public class MechaBehaviour : MonoBehaviour
 			return;
 		}
 		if (_rigidbody.velocity.sqrMagnitude > 9) {
-			screenShakeCoroutine ??= StartCoroutine(Shaking());
+			_screenShakeCoroutine ??= StartCoroutine(Shaking());
 		}
 	}
 
@@ -121,7 +131,7 @@ public class MechaBehaviour : MonoBehaviour
 		    yield return null;
 	    }
 	    camera.transform.localPosition = originalPosition;
-	    screenShakeCoroutine = null;
+	    _screenShakeCoroutine = null;
     }
 
     public void FixedUpdate()

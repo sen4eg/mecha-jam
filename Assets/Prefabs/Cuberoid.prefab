@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 8448556495744943719}
   - component: {fileID: -970709095215209234}
   - component: {fileID: -5615772437535654154}
+  - component: {fileID: 2566664255700261651}
+  - component: {fileID: 7772903973348382104}
   m_Layer: 0
   m_Name: Cuberoid
   m_TagString: Untagged
@@ -134,3 +136,31 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &2566664255700261651
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9212635766037809493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a439ed64113bc1d4fa259def30686848, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: 100
+  maxHealth: 100
+  isDead: 0
+  isInvincible: 0
+--- !u!114 &7772903973348382104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9212635766037809493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a345adaeac39ae341a89280cb72b6a25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
