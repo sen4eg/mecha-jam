@@ -12,22 +12,22 @@ public class Bullet : MonoBehaviour, IReferencable
     private bool _canCollide = true;
     public float collisionDisableDuration = 0.1f;
     public Rigidbody rbody;
-    private Coroutine collisionDisableCoroutine;
-    private Coroutine bulletDissappearCoroutine;
-
+    private Coroutine _collisionDisableCoroutine;
+    private Coroutine _bulletDissappearCoroutine;
+    private Vector3 _direction = Vector3.zero;
     public void Start() {
         rbody = GetComponent<Rigidbody>();
     }
 
     private void OnEnable() {
-        if (collisionDisableCoroutine != null) {
-            StopCoroutine(collisionDisableCoroutine);
+        if (_collisionDisableCoroutine != null) {
+            StopCoroutine(_collisionDisableCoroutine);
         }
-        if (bulletDissappearCoroutine != null) {
-            StopCoroutine(bulletDissappearCoroutine);
+        if (_bulletDissappearCoroutine != null) {
+            StopCoroutine(_bulletDissappearCoroutine);
         }
-        collisionDisableCoroutine = StartCoroutine(DisableCollisionsForDuration());
-        bulletDissappearCoroutine = StartCoroutine(DissappearAfterDuration());
+        _collisionDisableCoroutine = StartCoroutine(DisableCollisionsForDuration());
+        _bulletDissappearCoroutine = StartCoroutine(DissappearAfterDuration());
     }
     private IEnumerator DisableCollisionsForDuration()
     {
@@ -47,7 +47,7 @@ public class Bullet : MonoBehaviour, IReferencable
         SelfDestruct();
     }
     public void Update() {
-        transform.Translate(Vector3.up * speed * Time.deltaTime); 
+        transform.Translate(_direction * (speed * Time.deltaTime), Space.World); 
     }
 
     private void OnCollisionEnter(Collision other) {
@@ -69,5 +69,11 @@ public class Bullet : MonoBehaviour, IReferencable
         if (refTag == "OnDeath") {
             SelfDestruct();
         }
+    }
+
+    public void Shoot(float baseDamage, float fireForce, Vector3 direction) {
+        damage = baseDamage;
+        speed = fireForce;
+        _direction = direction;
     }
 }

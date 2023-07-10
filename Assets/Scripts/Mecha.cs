@@ -145,25 +145,7 @@ public class MechaBehaviour : MonoBehaviour
 	    //HandleAngularMovement();
     }
 
-    /*
-    private void HandleAngularMovement()
-    {
-	    //_rigidbody.AddRelativeTorque(angularVelocity * _angularDisplacement, angularForceMode);
-	    
-	    // Roll
-	    _rigidbody.AddTorque(Vector3.forward * (angularVelocity * _angularDisplacement.z * -1), angularForceMode);
-	    // Yaw
-	    _rigidbody.AddTorque(Vector3.right * (angularVelocity * _angularDisplacement.x), angularForceMode);
-	    // Pitch
-	    _rigidbody.AddTorque(Vector3.up * (angularVelocity * _angularDisplacement.y), angularForceMode);
-	    
-	    #region TheVeryDebugRegion
-	    if (Input.GetKey(KeyCode.Space)) {
-		    _rigidbody.angularVelocity = Vector3.zero;
-	    }
-	    #endregion
-    }
-    */
+
 
     private void HandleDirectionalMovement()
     {
